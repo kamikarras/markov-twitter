@@ -13,7 +13,7 @@ def open_and_read_file(filenames):
 
     for filename in filenames:
         text_file = open(filename)
-        body = body + text_file.read()
+        body = body + " " + text_file.read()
         text_file.close()
 
     return body
@@ -47,7 +47,7 @@ def make_text(chains):
     keys = list(chains.keys())
     key = choice(keys)
     words = [key[0], key[1]]
-    while key in chains:
+    while key in chains and len(words) < 100:
         # Keep looping until we have a key that isn't in the chains
         # (which would mean it was the end of our original text).
         #
@@ -58,7 +58,7 @@ def make_text(chains):
         words.append(word)
         key = (key[1], word)
 
-    return " ".join(words)
+    return " ".join(words)[:280].lower().replace(".", ",").capitalize()
 
 
 def tweet(chains):
@@ -67,8 +67,22 @@ def tweet(chains):
     # Use Python os.environ to get at environmental variables
     # Note: you must run `source secrets.sh` before running this file
     # to make sure these environmental variables are set.
+    api = twitter.Api(
+        consumer_key=os.environ['TWITTER_CONSUMER_KEY'],
+        consumer_secret=os.environ['TWITTER_CONSUMER_SECRET'],
+        access_token_key=os.environ['TWITTER_ACCESS_TOKEN_KEY'],
+        access_token_secret=os.environ['TWITTER_ACCESS_TOKEN_SECRET'])
 
-    pass
+    while True:
+        text = make_text(chains)
+        print(text)
+        print()
+        user_tweet = input("Enter for another [q to quit] > ").lower()
+
+        if user_tweet == "q":
+            break
+
+    status = api.PostUpdate(text)
 
 
 # Get the filenames from the user through a command line prompt, ex:
@@ -83,3 +97,5 @@ chains = make_chains(text)
 
 # Your task is to write a new function tweet, that will take chains as input
 # tweet(chains)
+
+tweet(chains)
